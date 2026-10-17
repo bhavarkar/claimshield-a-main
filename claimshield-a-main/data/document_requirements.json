@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "generic": {
+    "required": {
+      "reimbursement": ["hospital_bill", "discharge_summary", "payment_receipt", "claim_form", "policy_document"],
+      "cashless": ["hospital_bill", "discharge_summary", "claim_form", "policy_document"],
+      "day_care": ["hospital_bill", "claim_form", "policy_document"],
+      "default": ["hospital_bill", "claim_form", "policy_document"]
+    },
+    "recommended": {
+      "reimbursement": ["prescription", "investigation_report"],
+      "cashless": ["prescription", "investigation_report"],
+      "day_care": ["prescription", "investigation_report"],
+      "default": ["discharge_summary", "prescription", "investigation_report", "payment_receipt"]
+    }
+  },
+  "insurers": {}
+}

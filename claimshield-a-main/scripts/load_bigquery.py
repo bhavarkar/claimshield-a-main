@@ -27,6 +27,11 @@ def main() -> None:
         body = "\n".join(line for line in stmt.splitlines() if not line.strip().startswith("--")).strip()
         if body:
             client.query(body).result()
+    migration = (ROOT / "claimshield" / "sql" / "migrate_benchmark_v2.sql").read_text().replace("{dataset}", dataset)
+    for stmt in migration.split(";"):
+        body = "\n".join(line for line in stmt.splitlines() if not line.strip().startswith("--")).strip()
+        if body:
+            client.query(body).result()
     print(f"tables ready in {dataset}")
     for table in ("reference_pricing", "procedure_benchmarks"):
         job = client.load_table_from_file(

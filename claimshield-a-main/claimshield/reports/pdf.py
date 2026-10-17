@@ -13,7 +13,7 @@ from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import mm
 from reportlab.platypus import KeepTogether, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
-from ..models import FINDING_LABELS, Bill, Finding, Letter, PolicyDoc, Reconciliation
+from ..models import FINDING_LABELS, Bill, Finding, Letter, PolicyDoc, PolicyTerms, Reconciliation
 from ..money import rs
 
 _S = getSampleStyleSheet()
@@ -50,15 +50,21 @@ def _grid(t: Table, header: bool = True) -> Table:
     return t
 
 
-def report_pdf(case_id: str, bill: Bill, policy: PolicyDoc, findings: list[Finding], rec: Reconciliation, stack: dict[str, str]) -> bytes:
+def report_pdf(case_id: str, bill: Bill, policy: PolicyDoc, findings: list[Finding], rec: Reconciliation,
+               stack: dict[str, str], terms: PolicyTerms | None = None) -> bytes:
     buf = io.BytesIO()
     doc = SimpleDocTemplate(buf, pagesize=A4, leftMargin=15 * mm, rightMargin=15 * mm, topMargin=14 * mm, bottomMargin=16 * mm,
                             title=f"ClaimShield reconciliation report {case_id}", author="ClaimShield AI")
     story = [
         p("ClaimShield AI - Claim Reconciliation Report", H1),
         p(f"Case {case_id} | generated {date.today().isoformat()}", SMALL),
+        p(f"Policy document SHA-256: {policy.document_id or 'unavailable'} | selected version: {policy.version_id or 'unavailable'}", SMALL),
         Spacer(1, 6),
     ]
+    if terms and terms.uncertain_topics:
+        story += [p("Policy wording needs review", H2),
+                  p("These extracted topics contain ambiguous wording and should not be treated as confirmed terms without review: "
+                    + ", ".join(terms.uncertain_topics), SMALL)]
     info = [
         ["Patient", bill.patient_name, "Hospital", bill.hospital],
         ["Bill no.", bill.bill_number, "Stay", f"{bill.admission_date} to {bill.discharge_date}"],
@@ -124,7 +130,7 @@ def report_pdf(case_id: str, bill: Bill, policy: PolicyDoc, findings: list[Findi
                 p(f.explanation, CELL),
             ]
             if f.policy:
-                block.append(p(f"Policy clause {f.policy.clause_id} {f.policy.title} ({f.policy.source}, p.{f.policy.page}): \"{f.policy.quote}\"", QUOTE))
+                block.append(p(f"Policy clause {f.policy.clause_id} {f.policy.title} ({f.policy.source}, p.{f.policy.page}; document {f.policy.document_id or 'unavailable'}; version {f.policy.version_id or 'unavailable'}): \"{f.policy.quote}\"", QUOTE))
             block.append(p(f"Detected by {f.detected_by} via {f.method}. Raise with: {f.counterparty}.", SMALL))
             story.append(KeepTogether(block))
 

@@ -69,6 +69,10 @@ class TraceRegistry:
             self._traces[case_id] = trace
             return trace
 
+    def discard(self, case_id: str) -> None:
+        with self._lock:
+            self._traces.pop(case_id, None)
+
     def get(self, case_id: str) -> Trace:
         with self._lock:
             trace = self._traces.get(case_id)

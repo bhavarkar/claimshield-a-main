@@ -9,6 +9,7 @@ functions, `||`, CAST AS INTEGER) and run unchanged against:
 from __future__ import annotations
 
 import csv
+import json
 import re
 import sqlite3
 import threading
@@ -22,6 +23,17 @@ SQL_DIR = Path(__file__).resolve().parent.parent / "sql"
 TABLES = ("line_items", "reference_pricing", "procedure_benchmarks")
 
 
+def _benchmark_manifest(reference_dir: Path) -> dict[str, Any]:
+    path = reference_dir / "manifest.json"
+    if not path.exists():
+        return {"version": "legacy-unversioned", "default_region": "", "price_type": "informational",
+                "description": "Legacy reference prices without dataset version metadata."}
+    manifest = json.loads(path.read_text(encoding="utf-8"))
+    if not manifest.get("version") or not manifest.get("effective_date"):
+        raise ValueError("Benchmark manifest must declare a version and effective_date")
+    return manifest
+
+
 def load_sql(name: str) -> str:
     return (SQL_DIR / f"{name}.sql").read_text()
 
@@ -31,7 +43,8 @@ def _line_rows(case_id: str, bill: Bill) -> list[dict[str, Any]]:
     return [
         {
             "case_id": case_id, "line_no": li.line_no, "service_date": li.service_date, "code": li.code,
-            "description": li.description, "dept": li.dept, "category": li.category, "qty": li.qty,
+            "description": li.description, "dept": li.dept, "category": li.category, "unit": li.unit,
+            "region": bill.region, "qty": li.qty,
             "unit_price": li.unit_price, "amount": li.amount, "hospital": bill.hospital,
             "procedure": bill.procedure, "ingested_at": now,
         }
@@ -43,15 +56,18 @@ class SqliteStore:
     name = "SQLite (local stand-in for BigQuery)"
 
     def __init__(self, reference_dir: Path) -> None:
+        self.reference_dir = reference_dir
+        self.benchmark_metadata = _benchmark_manifest(reference_dir)
         self._db = sqlite3.connect(":memory:", check_same_thread=False)
         self._db.row_factory = sqlite3.Row
         self._lock = threading.Lock()
         self._db.executescript(
             """
             CREATE TABLE line_items (case_id TEXT, line_no INTEGER, service_date TEXT, code TEXT, description TEXT,
-              dept TEXT, category TEXT, qty REAL, unit_price REAL, amount REAL, hospital TEXT, procedure TEXT, ingested_at TEXT);
-            CREATE TABLE reference_pricing (code TEXT PRIMARY KEY, description TEXT, category TEXT, family TEXT, tier INTEGER,
-              p50_unit_price REAL, p90_unit_price REAL, city_tier INTEGER, source TEXT);
+              dept TEXT, category TEXT, unit TEXT, region TEXT, qty REAL, unit_price REAL, amount REAL, hospital TEXT, procedure TEXT, ingested_at TEXT);
+            CREATE TABLE reference_pricing (code TEXT, description TEXT, category TEXT, family TEXT, tier INTEGER,
+              p50_unit_price REAL, p90_unit_price REAL, city_tier INTEGER, source TEXT, region TEXT, unit TEXT,
+              price_source TEXT, price_type TEXT, provider_id TEXT, reference_date TEXT, dataset_version TEXT);
             CREATE TABLE procedure_benchmarks (procedure_key TEXT, family TEXT, max_expected_tier INTEGER, expected_code TEXT,
               rationale TEXT);
             CREATE TABLE findings (case_id TEXT, finding_id TEXT, type TEXT, title TEXT, bill_lines TEXT, confidence TEXT,
@@ -62,6 +78,18 @@ class SqliteStore:
         for table in ("reference_pricing", "procedure_benchmarks"):
             with open(reference_dir / f"{table}.csv", newline="") as fh:
                 rows = list(csv.DictReader(fh))
+            if table == "reference_pricing":
+                for row in rows:
+                    if row.get("price_type") not in {None, "", "informational", "contracted_tariff"}:
+                        raise ValueError(f"Unsupported benchmark price_type: {row['price_type']}")
+                    if row.get("price_type") == "contracted_tariff" and not row.get("provider_id"):
+                        raise ValueError("Contracted tariffs require a provider_id for an exact hospital match")
+                    if self.benchmark_metadata.get("version") != "legacy-unversioned":
+                        if row.get("dataset_version") != self.benchmark_metadata["version"]:
+                            raise ValueError("Reference row dataset_version does not match manifest version")
+                        for field in ("region", "unit", "price_source", "reference_date"):
+                            if not row.get(field):
+                                raise ValueError(f"Versioned benchmark row is missing {field}")
             cols = list(rows[0].keys())
             self._db.executemany(
                 f"INSERT INTO {table} ({', '.join(cols)}) VALUES ({', '.join('?' for _ in cols)})",
@@ -104,11 +132,18 @@ class SqliteStore:
     def categories(self) -> dict[str, str]:
         return {r["code"]: r["category"] for r in self.query("categories")}
 
+    def release_case(self, case_id: str) -> None:
+        """Discard transient analytical rows after the HTTP result is persisted."""
+        with self._lock:
+            self._db.execute('DELETE FROM line_items WHERE case_id=?', (case_id,))
+            self._db.execute('DELETE FROM findings WHERE case_id=?', (case_id,))
+            self._db.commit()
+
 
 class BigQueryStore:
     name = "BigQuery"
 
-    def __init__(self, project: str, dataset: str, location: str | None = None) -> None:
+    def __init__(self, project: str, dataset: str, location: str | None = None, reference_dir: Path | None = None) -> None:
         from google.cloud import bigquery
 
         self._bq = bigquery
@@ -116,6 +151,8 @@ class BigQueryStore:
         self._fq = {t: f"`{project}.{dataset}.{t}`" for t in TABLES}
         self._findings = f"{project}.{dataset}.findings"
         self._line_items = f"{project}.{dataset}.line_items"
+        self.benchmark_metadata = _benchmark_manifest(reference_dir) if reference_dir else {
+            "version": "legacy-unversioned", "default_region": "", "price_type": "informational"}
 
     def query(self, name: str, **params: Any) -> list[dict[str, Any]]:
         bq = self._bq

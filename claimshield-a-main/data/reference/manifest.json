@@ -1,0 +1,16 @@
+{
+  "dataset_id": "reference_pricing",
+  "version": "synthetic-2026.1",
+  "effective_date": "2026-01-01",
+  "default_region": "tier-2",
+  "currency": "INR",
+  "description": "Synthetic informational benchmark data for testing and demonstration; not a contracted tariff or authoritative local price list.",
+  "price_types": [
+    "informational",
+    "contracted_tariff"
+  ],
+  "files": {
+    "reference_pricing": "reference_pricing.csv",
+    "procedure_benchmarks": "procedure_benchmarks.csv"
+  }
+}

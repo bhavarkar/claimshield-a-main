@@ -11,6 +11,7 @@ Both return Clause objects with clause id, title, page and source for the citati
 from __future__ import annotations
 
 import math
+import os
 import re
 from collections import Counter
 
@@ -26,6 +27,12 @@ def _tokens(text: str) -> list[str]:
 
 class LocalRetriever:
     name = "BM25 over parsed clauses (local)"
+
+    def __init__(self, min_score: float | None = None) -> None:
+        configured = os.getenv("CLAIMSHIELD_RETRIEVAL_MIN_SCORE", "0.5")
+        self.min_score = float(configured) if min_score is None else float(min_score)
+        if self.min_score < 0:
+            raise ValueError("retrieval minimum score must be non-negative")
 
     def search(self, policy: PolicyDoc, query: str, top_k: int = 3) -> list[Clause]:
         docs = [(c, _tokens(f"{c.title} {c.title} {c.text}")) for c in policy.clauses]
@@ -44,7 +51,7 @@ class LocalRetriever:
                     continue
                 idf = math.log(1 + (n - df[term] + 0.5) / (df[term] + 0.5))
                 score += idf * tf[term] * (k1 + 1) / (tf[term] + k1 * (1 - b + b * len(toks) / avg))
-            if score > 0:
+            if score >= self.min_score and score > 0:
                 scored.append(clause.model_copy(update={"score": round(score, 3)}))
         scored.sort(key=lambda c: c.score, reverse=True)
         return scored[:top_k]
@@ -80,10 +87,8 @@ class VertexSearchRetriever:
         out: list[Clause] = []
         for result in self._client.search(request).results:
             chunk = result.chunk
-            # The data store holds every indexed policy; keep only chunks from this document.
-            uri = chunk.document_metadata.uri if chunk.document_metadata else ""
-            if not policy.source or not uri.endswith("/" + policy.source):
-                continue
+            # Filenames are not document identities. Vertex hits must map back to the
+            # selected parsed document's exact clause text before they can be used.
             clause = self._to_clause(policy, chunk.content or "", chunk)
             if clause is not None:
                 out.append(clause)
@@ -96,7 +101,9 @@ class VertexSearchRetriever:
         m = re.search(r"(\d+\.\d+)\s+[A-Z]", text)
         if m:
             for c in policy.clauses:
-                if c.clause_id == m.group(1):
+                normalized_chunk = " ".join(text.split()).casefold()
+                normalized_clause = " ".join(c.text.split()).casefold()
+                if (c.clause_id == m.group(1) and normalized_chunk and normalized_clause
+                        and (normalized_chunk in normalized_clause or normalized_clause in normalized_chunk)):
                     return c.model_copy(update={"score": 1.0})
-        page = chunk.page_span.page_start if chunk.page_span else 1
-        return Clause(clause_id="?", title="Policy excerpt", text=text.strip(), page=page, source=policy.source, score=0.5)
+        return None

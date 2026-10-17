@@ -53,6 +53,13 @@ def test_findings_match_answer_key(bill_id: str, use_adk: bool, monkeypatch) -> 
     agents = {e["agent"] for e in state["trace"]}
     assert {"intake_agent", "policy_agent", "audit_agent", "benchmark_agent", "reconciliation_agent", "dispute_agent"} <= agents
     assert state["artifacts"]["report"]
+    # An ADK-labelled test must not silently pass through the plain fallback.
+    expected_runner = "ADK claimshield_orchestrator" if use_adk else "Plain runner:"
+    assert any(expected_runner in e["message"] for e in state["trace"])
+    paid, fair, likely, upper = EXPECTED_MONEY[bill_id]
+    rec = state["reconciliation"]
+    assert (rec["patient_paid"], rec["fair_patient_payable_high"],
+            rec["recovery_likely"], rec["recovery_upper"]) == pytest.approx((paid, fair, likely, upper))
 
 
 EXPECTED_MONEY = {

@@ -1,0 +1,967 @@
+{
+  "claim_id": "synthetic-claim",
+  "total_billed": 10350.0,
+  "total_billed_basis": "printed_total",
+  "potential_discrepancy": 4000.0,
+  "benchmark_variance": 0.0,
+  "finding_counts": {
+    "clear": 0,
+    "flagged": 1,
+    "needs_review": 10
+  },
+  "warning_count": 11,
+  "findings": [
+    {
+      "finding_id": "H-9c8cd0ad672c70f1",
+      "type": "NON_PAYABLE_ITEM",
+      "title": "Non Payable Item",
+      "bill_lines": [
+        1
+      ],
+      "bill_evidence": "Line 1: Room; billed ₹10,000",
+      "policy": null,
+      "explanation": "No active, applicable, verified non-payable item rule is available. No exclusion was inferred.",
+      "confidence": "Worth reviewing",
+      "impact": 0.0,
+      "counterparty": "hospital",
+      "bill_correction": 0.0,
+      "correction_line": null,
+      "detected_by": "healthcare_reference_audit",
+      "method": "deterministic source-backed check",
+      "topic": "",
+      "evidence": {
+        "bill": {
+          "line_no": 1,
+          "page_number": null,
+          "source_text": null
+        }
+      },
+      "benchmark": null,
+      "claim_id": "synthetic-claim",
+      "bill_item_id": "1",
+      "severity": "warning",
+      "status": "needs_review",
+      "billed_amount": 10000.0,
+      "reference_amount": null,
+      "potential_difference": null,
+      "rule_id": null,
+      "rule_name": "NON_PAYABLE_ITEM",
+      "confidence_score": 0.0,
+      "match_status": "no_match",
+      "comparison": "reference_unavailable"
+    },
+    {
+      "finding_id": "H-9c5ca9d5c4d58c50",
+      "type": "NON_PAYABLE_ITEM",
+      "title": "Non Payable Item",
+      "bill_lines": [
+        2
+      ],
+      "bill_evidence": "Line 2: CBC; billed ₹150",
+      "policy": null,
+      "explanation": "No active, applicable, verified non-payable item rule is available. No exclusion was inferred.",
+      "confidence": "Worth reviewing",
+      "impact": 0.0,
+      "counterparty": "hospital",
+      "bill_correction": 0.0,
+      "correction_line": null,
+      "detected_by": "healthcare_reference_audit",
+      "method": "deterministic source-backed check",
+      "topic": "",
+      "evidence": {
+        "bill": {
+          "line_no": 2,
+          "page_number": null,
+          "source_text": null
+        }
+      },
+      "benchmark": null,
+      "claim_id": "synthetic-claim",
+      "bill_item_id": "2",
+      "severity": "warning",
+      "status": "needs_review",
+      "billed_amount": 150.0,
+      "reference_amount": null,
+      "potential_difference": null,
+      "rule_id": null,
+      "rule_name": "NON_PAYABLE_ITEM",
+      "confidence_score": 0.0,
+      "match_status": "no_match",
+      "comparison": "reference_unavailable"
+    },
+    {
+      "finding_id": "H-4ee23b81d669de10",
+      "type": "NON_PAYABLE_ITEM",
+      "title": "Non Payable Item",
+      "bill_lines": [
+        3
+      ],
+      "bill_evidence": "Line 3: Admission kit; billed ₹200",
+      "policy": null,
+      "explanation": "No active, applicable, verified non-payable item rule is available. No exclusion was inferred.",
+      "confidence": "Worth reviewing",
+      "impact": 0.0,
+      "counterparty": "hospital",
+      "bill_correction": 0.0,
+      "correction_line": null,
+      "detected_by": "healthcare_reference_audit",
+      "method": "deterministic source-backed check",
+      "topic": "",
+      "evidence": {
+        "bill": {
+          "line_no": 3,
+          "page_number": null,
+          "source_text": null
+        }
+      },
+      "benchmark": null,
+      "claim_id": "synthetic-claim",
+      "bill_item_id": "3",
+      "severity": "warning",
+      "status": "needs_review",
+      "billed_amount": 200.0,
+      "reference_amount": null,
+      "potential_difference": null,
+      "rule_id": null,
+      "rule_name": "NON_PAYABLE_ITEM",
+      "confidence_score": 0.0,
+      "match_status": "no_match",
+      "comparison": "reference_unavailable"
+    },
+    {
+      "finding_id": "H-ce36d62020585320",
+      "type": "ROOM_RENT_LIMIT",
+      "title": "Room Rent Limit",
+      "bill_lines": [
+        1
+      ],
+      "bill_evidence": "Line 1: Room; billed ₹10,000",
+      "policy": {
+        "clause_id": "R1",
+        "title": "Synthetic room cap",
+        "quote": "Synthetic policy daily room limit: Rs. 3000.",
+        "source": "synthetic-policy.pdf",
+        "page": 2,
+        "document_id": "synthetic-policy-only",
+        "version_id": "synthetic-version-only"
+      },
+      "explanation": "Room rent billed at ₹5,000/day; provided policy limit ₹3,000/day. For 2 billed days, direct excess is ₹4,000. This does not activate proportionate adjustments to other charges.",
+      "confidence": "High",
+      "impact": 4000.0,
+      "counterparty": "hospital",
+      "bill_correction": 0.0,
+      "correction_line": null,
+      "detected_by": "healthcare_reference_audit",
+      "method": "deterministic source-backed check",
+      "topic": "",
+      "evidence": {
+        "daily_limit": 3000.0,
+        "actual_daily_rate": 5000.0,
+        "days": 2.0,
+        "calculation": "billed_amount - min(billed_amount, days * daily_limit)",
+        "limit_type": "per_day",
+        "source": {
+          "source_name": "synthetic-policy.pdf",
+          "source_type": "POLICY",
+          "document_id": "synthetic-policy-only",
+          "page_number": 2,
+          "version": "synthetic-version-only",
+          "effective_date": null,
+          "imported_at": null,
+          "verification_status": "provided_policy_evidence",
+          "notes": "Calculation uses the supplied normalized policy limit and its cited wording.",
+          "source_quote": "Synthetic policy daily room limit: Rs. 3000."
+        },
+        "bill": {
+          "line_no": 1,
+          "page_number": null,
+          "source_text": null
+        }
+      },
+      "benchmark": null,
+      "claim_id": "synthetic-claim",
+      "bill_item_id": "1",
+      "severity": "warning",
+      "status": "flagged",
+      "billed_amount": 10000.0,
+      "reference_amount": 6000.0,
+      "potential_difference": 4000.0,
+      "rule_id": null,
+      "rule_name": "ROOM_RENT_LIMIT",
+      "confidence_score": 0.98,
+      "match_status": "not_applicable",
+      "comparison": null
+    },
+    {
+      "finding_id": "H-040d5c07a15de054",
+      "type": "ROOM_RENT_PROPORTIONATE",
+      "title": "Room Rent Proportionate",
+      "bill_lines": [],
+      "bill_evidence": "Claim-level room-rent context",
+      "policy": null,
+      "explanation": "Room rent exceeds the provided limit, but a unique verified policy-specific proportionate rule is unavailable. Other bill items were not adjusted.",
+      "confidence": "Worth reviewing",
+      "impact": 0.0,
+      "counterparty": "hospital",
+      "bill_correction": 0.0,
+      "correction_line": null,
+      "detected_by": "healthcare_reference_audit",
+      "method": "deterministic source-backed check",
+      "topic": "",
+      "evidence": {
+        "daily_limit": 3000.0,
+        "actual_daily_rate": 5000.0,
+        "ratio": null,
+        "bill": null
+      },
+      "benchmark": null,
+      "claim_id": "synthetic-claim",
+      "bill_item_id": null,
+      "severity": "warning",
+      "status": "needs_review",
+      "billed_amount": null,
+      "reference_amount": null,
+      "potential_difference": null,
+      "rule_id": null,
+      "rule_name": "ROOM_RENT_PROPORTIONATE",
+      "confidence_score": 0.0,
+      "match_status": "not_applicable",
+      "comparison": null
+    },
+    {
+      "finding_id": "H-b2e66506cefac11b",
+      "type": "HEALTHCARE_BENCHMARK",
+      "title": "CGHS reference check",
+      "bill_lines": [
+        1
+      ],
+      "bill_evidence": "Line 1: Room; billed ₹10,000",
+      "policy": null,
+      "explanation": "No active verified reference matches the item, date, product and geographic scope.",
+      "confidence": "Worth reviewing",
+      "impact": 0.0,
+      "counterparty": "hospital",
+      "bill_correction": 0.0,
+      "correction_line": null,
+      "detected_by": "healthcare_reference_audit",
+      "method": "deterministic source-backed check",
+      "topic": "",
+      "evidence": {
+        "source_type": "CGHS",
+        "candidate_record_ids": [],
+        "bill": {
+          "line_no": 1,
+          "page_number": null,
+          "source_text": null
+        }
+      },
+      "benchmark": null,
+      "claim_id": "synthetic-claim",
+      "bill_item_id": "1",
+      "severity": "warning",
+      "status": "needs_review",
+      "billed_amount": 10000.0,
+      "reference_amount": null,
+      "potential_difference": null,
+      "rule_id": null,
+      "rule_name": "CGHS reference check",
+      "confidence_score": 0.0,
+      "match_status": "no_match",
+      "comparison": "benchmark_unavailable"
+    },
+    {
+      "finding_id": "H-1c78e8feb2de6eb5",
+      "type": "HEALTHCARE_BENCHMARK",
+      "title": "PMJAY reference check",
+      "bill_lines": [
+        1
+      ],
+      "bill_evidence": "Line 1: Room; billed ₹10,000",
+      "policy": null,
+      "explanation": "No active verified reference matches the item, date, product and geographic scope.",
+      "confidence": "Worth reviewing",
+      "impact": 0.0,
+      "counterparty": "hospital",
+      "bill_correction": 0.0,
+      "correction_line": null,
+      "detected_by": "healthcare_reference_audit",
+      "method": "deterministic source-backed check",
+      "topic": "",
+      "evidence": {
+        "source_type": "PMJAY",
+        "candidate_record_ids": [],
+        "bill": {
+          "line_no": 1,
+          "page_number": null,
+          "source_text": null
+        }
+      },
+      "benchmark": null,
+      "claim_id": "synthetic-claim",
+      "bill_item_id": "1",
+      "severity": "warning",
+      "status": "needs_review",
+      "billed_amount": 10000.0,
+      "reference_amount": null,
+      "potential_difference": null,
+      "rule_id": null,
+      "rule_name": "PMJAY reference check",
+      "confidence_score": 0.0,
+      "match_status": "no_match",
+      "comparison": "benchmark_unavailable"
+    },
+    {
+      "finding_id": "H-c76b39e0f599335e",
+      "type": "HEALTHCARE_BENCHMARK",
+      "title": "CGHS reference check",
+      "bill_lines": [
+        2
+      ],
+      "bill_evidence": "Line 2: CBC; billed ₹150",
+      "policy": null,
+      "explanation": "No active verified reference matches the item, date, product and geographic scope.",
+      "confidence": "Worth reviewing",
+      "impact": 0.0,
+      "counterparty": "hospital",
+      "bill_correction": 0.0,
+      "correction_line": null,
+      "detected_by": "healthcare_reference_audit",
+      "method": "deterministic source-backed check",
+      "topic": "",
+      "evidence": {
+        "source_type": "CGHS",
+        "candidate_record_ids": [],
+        "bill": {
+          "line_no": 2,
+          "page_number": null,
+          "source_text": null
+        }
+      },
+      "benchmark": null,
+      "claim_id": "synthetic-claim",
+      "bill_item_id": "2",
+      "severity": "warning",
+      "status": "needs_review",
+      "billed_amount": 150.0,
+      "reference_amount": null,
+      "potential_difference": null,
+      "rule_id": null,
+      "rule_name": "CGHS reference check",
+      "confidence_score": 0.0,
+      "match_status": "no_match",
+      "comparison": "benchmark_unavailable"
+    },
+    {
+      "finding_id": "H-0ee36f8c20556985",
+      "type": "HEALTHCARE_BENCHMARK",
+      "title": "PMJAY reference check",
+      "bill_lines": [
+        2
+      ],
+      "bill_evidence": "Line 2: CBC; billed ₹150",
+      "policy": null,
+      "explanation": "No active verified reference matches the item, date, product and geographic scope.",
+      "confidence": "Worth reviewing",
+      "impact": 0.0,
+      "counterparty": "hospital",
+      "bill_correction": 0.0,
+      "correction_line": null,
+      "detected_by": "healthcare_reference_audit",
+      "method": "deterministic source-backed check",
+      "topic": "",
+      "evidence": {
+        "source_type": "PMJAY",
+        "candidate_record_ids": [],
+        "bill": {
+          "line_no": 2,
+          "page_number": null,
+          "source_text": null
+        }
+      },
+      "benchmark": null,
+      "claim_id": "synthetic-claim",
+      "bill_item_id": "2",
+      "severity": "warning",
+      "status": "needs_review",
+      "billed_amount": 150.0,
+      "reference_amount": null,
+      "potential_difference": null,
+      "rule_id": null,
+      "rule_name": "PMJAY reference check",
+      "confidence_score": 0.0,
+      "match_status": "no_match",
+      "comparison": "benchmark_unavailable"
+    },
+    {
+      "finding_id": "H-3f0fdbb5f3b46b55",
+      "type": "HEALTHCARE_BENCHMARK",
+      "title": "CGHS reference check",
+      "bill_lines": [
+        3
+      ],
+      "bill_evidence": "Line 3: Admission kit; billed ₹200",
+      "policy": null,
+      "explanation": "No active verified reference matches the item, date, product and geographic scope.",
+      "confidence": "Worth reviewing",
+      "impact": 0.0,
+      "counterparty": "hospital",
+      "bill_correction": 0.0,
+      "correction_line": null,
+      "detected_by": "healthcare_reference_audit",
+      "method": "deterministic source-backed check",
+      "topic": "",
+      "evidence": {
+        "source_type": "CGHS",
+        "candidate_record_ids": [],
+        "bill": {
+          "line_no": 3,
+          "page_number": null,
+          "source_text": null
+        }
+      },
+      "benchmark": null,
+      "claim_id": "synthetic-claim",
+      "bill_item_id": "3",
+      "severity": "warning",
+      "status": "needs_review",
+      "billed_amount": 200.0,
+      "reference_amount": null,
+      "potential_difference": null,
+      "rule_id": null,
+      "rule_name": "CGHS reference check",
+      "confidence_score": 0.0,
+      "match_status": "no_match",
+      "comparison": "benchmark_unavailable"
+    },
+    {
+      "finding_id": "H-b76b1c8290fe425c",
+      "type": "HEALTHCARE_BENCHMARK",
+      "title": "PMJAY reference check",
+      "bill_lines": [
+        3
+      ],
+      "bill_evidence": "Line 3: Admission kit; billed ₹200",
+      "policy": null,
+      "explanation": "No active verified reference matches the item, date, product and geographic scope.",
+      "confidence": "Worth reviewing",
+      "impact": 0.0,
+      "counterparty": "hospital",
+      "bill_correction": 0.0,
+      "correction_line": null,
+      "detected_by": "healthcare_reference_audit",
+      "method": "deterministic source-backed check",
+      "topic": "",
+      "evidence": {
+        "source_type": "PMJAY",
+        "candidate_record_ids": [],
+        "bill": {
+          "line_no": 3,
+          "page_number": null,
+          "source_text": null
+        }
+      },
+      "benchmark": null,
+      "claim_id": "synthetic-claim",
+      "bill_item_id": "3",
+      "severity": "warning",
+      "status": "needs_review",
+      "billed_amount": 200.0,
+      "reference_amount": null,
+      "potential_difference": null,
+      "rule_id": null,
+      "rule_name": "PMJAY reference check",
+      "confidence_score": 0.0,
+      "match_status": "no_match",
+      "comparison": "benchmark_unavailable"
+    }
+  ],
+  "summary_basis": "Potential discrepancy is the largest positive supported adjustment per bill item; CGHS/PMJAY benchmark variances are separate. These are audit scenarios, not guaranteed recovery or regulatory violation determinations.",
+  "warnings": [
+    "Healthcare price references are unavailable; no CGHS, PM-JAY or NPPA rate was inferred.",
+    "No applicable verified non-payable item rules are available; no regulatory exclusion was inferred."
+  ],
+  "status": "complete",
+  "healthcare_audit": {
+    "claim_id": "synthetic-claim",
+    "total_billed": 10350.0,
+    "total_billed_basis": "printed_total",
+    "potential_discrepancy": 4000.0,
+    "benchmark_variance": 0.0,
+    "finding_counts": {
+      "clear": 0,
+      "flagged": 1,
+      "needs_review": 10
+    },
+    "warning_count": 11,
+    "findings": [
+      {
+        "finding_id": "H-9c8cd0ad672c70f1",
+        "type": "NON_PAYABLE_ITEM",
+        "title": "Non Payable Item",
+        "bill_lines": [
+          1
+        ],
+        "bill_evidence": "Line 1: Room; billed ₹10,000",
+        "policy": null,
+        "explanation": "No active, applicable, verified non-payable item rule is available. No exclusion was inferred.",
+        "confidence": "Worth reviewing",
+        "impact": 0.0,
+        "counterparty": "hospital",
+        "bill_correction": 0.0,
+        "correction_line": null,
+        "detected_by": "healthcare_reference_audit",
+        "method": "deterministic source-backed check",
+        "topic": "",
+        "evidence": {
+          "bill": {
+            "line_no": 1,
+            "page_number": null,
+            "source_text": null
+          }
+        },
+        "benchmark": null,
+        "claim_id": "synthetic-claim",
+        "bill_item_id": "1",
+        "severity": "warning",
+        "status": "needs_review",
+        "billed_amount": 10000.0,
+        "reference_amount": null,
+        "potential_difference": null,
+        "rule_id": null,
+        "rule_name": "NON_PAYABLE_ITEM",
+        "confidence_score": 0.0,
+        "match_status": "no_match",
+        "comparison": "reference_unavailable"
+      },
+      {
+        "finding_id": "H-9c5ca9d5c4d58c50",
+        "type": "NON_PAYABLE_ITEM",
+        "title": "Non Payable Item",
+        "bill_lines": [
+          2
+        ],
+        "bill_evidence": "Line 2: CBC; billed ₹150",
+        "policy": null,
+        "explanation": "No active, applicable, verified non-payable item rule is available. No exclusion was inferred.",
+        "confidence": "Worth reviewing",
+        "impact": 0.0,
+        "counterparty": "hospital",
+        "bill_correction": 0.0,
+        "correction_line": null,
+        "detected_by": "healthcare_reference_audit",
+        "method": "deterministic source-backed check",
+        "topic": "",
+        "evidence": {
+          "bill": {
+            "line_no": 2,
+            "page_number": null,
+            "source_text": null
+          }
+        },
+        "benchmark": null,
+        "claim_id": "synthetic-claim",
+        "bill_item_id": "2",
+        "severity": "warning",
+        "status": "needs_review",
+        "billed_amount": 150.0,
+        "reference_amount": null,
+        "potential_difference": null,
+        "rule_id": null,
+        "rule_name": "NON_PAYABLE_ITEM",
+        "confidence_score": 0.0,
+        "match_status": "no_match",
+        "comparison": "reference_unavailable"
+      },
+      {
+        "finding_id": "H-4ee23b81d669de10",
+        "type": "NON_PAYABLE_ITEM",
+        "title": "Non Payable Item",
+        "bill_lines": [
+          3
+        ],
+        "bill_evidence": "Line 3: Admission kit; billed ₹200",
+        "policy": null,
+        "explanation": "No active, applicable, verified non-payable item rule is available. No exclusion was inferred.",
+        "confidence": "Worth reviewing",
+        "impact": 0.0,
+        "counterparty": "hospital",
+        "bill_correction": 0.0,
+        "correction_line": null,
+        "detected_by": "healthcare_reference_audit",
+        "method": "deterministic source-backed check",
+        "topic": "",
+        "evidence": {
+          "bill": {
+            "line_no": 3,
+            "page_number": null,
+            "source_text": null
+          }
+        },
+        "benchmark": null,
+        "claim_id": "synthetic-claim",
+        "bill_item_id": "3",
+        "severity": "warning",
+        "status": "needs_review",
+        "billed_amount": 200.0,
+        "reference_amount": null,
+        "potential_difference": null,
+        "rule_id": null,
+        "rule_name": "NON_PAYABLE_ITEM",
+        "confidence_score": 0.0,
+        "match_status": "no_match",
+        "comparison": "reference_unavailable"
+      },
+      {
+        "finding_id": "H-ce36d62020585320",
+        "type": "ROOM_RENT_LIMIT",
+        "title": "Room Rent Limit",
+        "bill_lines": [
+          1
+        ],
+        "bill_evidence": "Line 1: Room; billed ₹10,000",
+        "policy": {
+          "clause_id": "R1",
+          "title": "Synthetic room cap",
+          "quote": "Synthetic policy daily room limit: Rs. 3000.",
+          "source": "synthetic-policy.pdf",
+          "page": 2,
+          "document_id": "synthetic-policy-only",
+          "version_id": "synthetic-version-only"
+        },
+        "explanation": "Room rent billed at ₹5,000/day; provided policy limit ₹3,000/day. For 2 billed days, direct excess is ₹4,000. This does not activate proportionate adjustments to other charges.",
+        "confidence": "High",
+        "impact": 4000.0,
+        "counterparty": "hospital",
+        "bill_correction": 0.0,
+        "correction_line": null,
+        "detected_by": "healthcare_reference_audit",
+        "method": "deterministic source-backed check",
+        "topic": "",
+        "evidence": {
+          "daily_limit": 3000.0,
+          "actual_daily_rate": 5000.0,
+          "days": 2.0,
+          "calculation": "billed_amount - min(billed_amount, days * daily_limit)",
+          "limit_type": "per_day",
+          "source": {
+            "source_name": "synthetic-policy.pdf",
+            "source_type": "POLICY",
+            "document_id": "synthetic-policy-only",
+            "page_number": 2,
+            "version": "synthetic-version-only",
+            "effective_date": null,
+            "imported_at": null,
+            "verification_status": "provided_policy_evidence",
+            "notes": "Calculation uses the supplied normalized policy limit and its cited wording.",
+            "source_quote": "Synthetic policy daily room limit: Rs. 3000."
+          },
+          "bill": {
+            "line_no": 1,
+            "page_number": null,
+            "source_text": null
+          }
+        },
+        "benchmark": null,
+        "claim_id": "synthetic-claim",
+        "bill_item_id": "1",
+        "severity": "warning",
+        "status": "flagged",
+        "billed_amount": 10000.0,
+        "reference_amount": 6000.0,
+        "potential_difference": 4000.0,
+        "rule_id": null,
+        "rule_name": "ROOM_RENT_LIMIT",
+        "confidence_score": 0.98,
+        "match_status": "not_applicable",
+        "comparison": null
+      },
+      {
+        "finding_id": "H-040d5c07a15de054",
+        "type": "ROOM_RENT_PROPORTIONATE",
+        "title": "Room Rent Proportionate",
+        "bill_lines": [],
+        "bill_evidence": "Claim-level room-rent context",
+        "policy": null,
+        "explanation": "Room rent exceeds the provided limit, but a unique verified policy-specific proportionate rule is unavailable. Other bill items were not adjusted.",
+        "confidence": "Worth reviewing",
+        "impact": 0.0,
+        "counterparty": "hospital",
+        "bill_correction": 0.0,
+        "correction_line": null,
+        "detected_by": "healthcare_reference_audit",
+        "method": "deterministic source-backed check",
+        "topic": "",
+        "evidence": {
+          "daily_limit": 3000.0,
+          "actual_daily_rate": 5000.0,
+          "ratio": null,
+          "bill": null
+        },
+        "benchmark": null,
+        "claim_id": "synthetic-claim",
+        "bill_item_id": null,
+        "severity": "warning",
+        "status": "needs_review",
+        "billed_amount": null,
+        "reference_amount": null,
+        "potential_difference": null,
+        "rule_id": null,
+        "rule_name": "ROOM_RENT_PROPORTIONATE",
+        "confidence_score": 0.0,
+        "match_status": "not_applicable",
+        "comparison": null
+      },
+      {
+        "finding_id": "H-b2e66506cefac11b",
+        "type": "HEALTHCARE_BENCHMARK",
+        "title": "CGHS reference check",
+        "bill_lines": [
+          1
+        ],
+        "bill_evidence": "Line 1: Room; billed ₹10,000",
+        "policy": null,
+        "explanation": "No active verified reference matches the item, date, product and geographic scope.",
+        "confidence": "Worth reviewing",
+        "impact": 0.0,
+        "counterparty": "hospital",
+        "bill_correction": 0.0,
+        "correction_line": null,
+        "detected_by": "healthcare_reference_audit",
+        "method": "deterministic source-backed check",
+        "topic": "",
+        "evidence": {
+          "source_type": "CGHS",
+          "candidate_record_ids": [],
+          "bill": {
+            "line_no": 1,
+            "page_number": null,
+            "source_text": null
+          }
+        },
+        "benchmark": null,
+        "claim_id": "synthetic-claim",
+        "bill_item_id": "1",
+        "severity": "warning",
+        "status": "needs_review",
+        "billed_amount": 10000.0,
+        "reference_amount": null,
+        "potential_difference": null,
+        "rule_id": null,
+        "rule_name": "CGHS reference check",
+        "confidence_score": 0.0,
+        "match_status": "no_match",
+        "comparison": "benchmark_unavailable"
+      },
+      {
+        "finding_id": "H-1c78e8feb2de6eb5",
+        "type": "HEALTHCARE_BENCHMARK",
+        "title": "PMJAY reference check",
+        "bill_lines": [
+          1
+        ],
+        "bill_evidence": "Line 1: Room; billed ₹10,000",
+        "policy": null,
+        "explanation": "No active verified reference matches the item, date, product and geographic scope.",
+        "confidence": "Worth reviewing",
+        "impact": 0.0,
+        "counterparty": "hospital",
+        "bill_correction": 0.0,
+        "correction_line": null,
+        "detected_by": "healthcare_reference_audit",
+        "method": "deterministic source-backed check",
+        "topic": "",
+        "evidence": {
+          "source_type": "PMJAY",
+          "candidate_record_ids": [],
+          "bill": {
+            "line_no": 1,
+            "page_number": null,
+            "source_text": null
+          }
+        },
+        "benchmark": null,
+        "claim_id": "synthetic-claim",
+        "bill_item_id": "1",
+        "severity": "warning",
+        "status": "needs_review",
+        "billed_amount": 10000.0,
+        "reference_amount": null,
+        "potential_difference": null,
+        "rule_id": null,
+        "rule_name": "PMJAY reference check",
+        "confidence_score": 0.0,
+        "match_status": "no_match",
+        "comparison": "benchmark_unavailable"
+      },
+      {
+        "finding_id": "H-c76b39e0f599335e",
+        "type": "HEALTHCARE_BENCHMARK",
+        "title": "CGHS reference check",
+        "bill_lines": [
+          2
+        ],
+        "bill_evidence": "Line 2: CBC; billed ₹150",
+        "policy": null,
+        "explanation": "No active verified reference matches the item, date, product and geographic scope.",
+        "confidence": "Worth reviewing",
+        "impact": 0.0,
+        "counterparty": "hospital",
+        "bill_correction": 0.0,
+        "correction_line": null,
+        "detected_by": "healthcare_reference_audit",
+        "method": "deterministic source-backed check",
+        "topic": "",
+        "evidence": {
+          "source_type": "CGHS",
+          "candidate_record_ids": [],
+          "bill": {
+            "line_no": 2,
+            "page_number": null,
+            "source_text": null
+          }
+        },
+        "benchmark": null,
+        "claim_id": "synthetic-claim",
+        "bill_item_id": "2",
+        "severity": "warning",
+        "status": "needs_review",
+        "billed_amount": 150.0,
+        "reference_amount": null,
+        "potential_difference": null,
+        "rule_id": null,
+        "rule_name": "CGHS reference check",
+        "confidence_score": 0.0,
+        "match_status": "no_match",
+        "comparison": "benchmark_unavailable"
+      },
+      {
+        "finding_id": "H-0ee36f8c20556985",
+        "type": "HEALTHCARE_BENCHMARK",
+        "title": "PMJAY reference check",
+        "bill_lines": [
+          2
+        ],
+        "bill_evidence": "Line 2: CBC; billed ₹150",
+        "policy": null,
+        "explanation": "No active verified reference matches the item, date, product and geographic scope.",
+        "confidence": "Worth reviewing",
+        "impact": 0.0,
+        "counterparty": "hospital",
+        "bill_correction": 0.0,
+        "correction_line": null,
+        "detected_by": "healthcare_reference_audit",
+        "method": "deterministic source-backed check",
+        "topic": "",
+        "evidence": {
+          "source_type": "PMJAY",
+          "candidate_record_ids": [],
+          "bill": {
+            "line_no": 2,
+            "page_number": null,
+            "source_text": null
+          }
+        },
+        "benchmark": null,
+        "claim_id": "synthetic-claim",
+        "bill_item_id": "2",
+        "severity": "warning",
+        "status": "needs_review",
+        "billed_amount": 150.0,
+        "reference_amount": null,
+        "potential_difference": null,
+        "rule_id": null,
+        "rule_name": "PMJAY reference check",
+        "confidence_score": 0.0,
+        "match_status": "no_match",
+        "comparison": "benchmark_unavailable"
+      },
+      {
+        "finding_id": "H-3f0fdbb5f3b46b55",
+        "type": "HEALTHCARE_BENCHMARK",
+        "title": "CGHS reference check",
+        "bill_lines": [
+          3
+        ],
+        "bill_evidence": "Line 3: Admission kit; billed ₹200",
+        "policy": null,
+        "explanation": "No active verified reference matches the item, date, product and geographic scope.",
+        "confidence": "Worth reviewing",
+        "impact": 0.0,
+        "counterparty": "hospital",
+        "bill_correction": 0.0,
+        "correction_line": null,
+        "detected_by": "healthcare_reference_audit",
+        "method": "deterministic source-backed check",
+        "topic": "",
+        "evidence": {
+          "source_type": "CGHS",
+          "candidate_record_ids": [],
+          "bill": {
+            "line_no": 3,
+            "page_number": null,
+            "source_text": null
+          }
+        },
+        "benchmark": null,
+        "claim_id": "synthetic-claim",
+        "bill_item_id": "3",
+        "severity": "warning",
+        "status": "needs_review",
+        "billed_amount": 200.0,
+        "reference_amount": null,
+        "potential_difference": null,
+        "rule_id": null,
+        "rule_name": "CGHS reference check",
+        "confidence_score": 0.0,
+        "match_status": "no_match",
+        "comparison": "benchmark_unavailable"
+      },
+      {
+        "finding_id": "H-b76b1c8290fe425c",
+        "type": "HEALTHCARE_BENCHMARK",
+        "title": "PMJAY reference check",
+        "bill_lines": [
+          3
+        ],
+        "bill_evidence": "Line 3: Admission kit; billed ₹200",
+        "policy": null,
+        "explanation": "No active verified reference matches the item, date, product and geographic scope.",
+        "confidence": "Worth reviewing",
+        "impact": 0.0,
+        "counterparty": "hospital",
+        "bill_correction": 0.0,
+        "correction_line": null,
+        "detected_by": "healthcare_reference_audit",
+        "method": "deterministic source-backed check",
+        "topic": "",
+        "evidence": {
+          "source_type": "PMJAY",
+          "candidate_record_ids": [],
+          "bill": {
+            "line_no": 3,
+            "page_number": null,
+            "source_text": null
+          }
+        },
+        "benchmark": null,
+        "claim_id": "synthetic-claim",
+        "bill_item_id": "3",
+        "severity": "warning",
+        "status": "needs_review",
+        "billed_amount": 200.0,
+        "reference_amount": null,
+        "potential_difference": null,
+        "rule_id": null,
+        "rule_name": "PMJAY reference check",
+        "confidence_score": 0.0,
+        "match_status": "no_match",
+        "comparison": "benchmark_unavailable"
+      }
+    ],
+    "summary_basis": "Potential discrepancy is the largest positive supported adjustment per bill item; CGHS/PMJAY benchmark variances are separate. These are audit scenarios, not guaranteed recovery or regulatory violation determinations.",
+    "warnings": [
+      "Healthcare price references are unavailable; no CGHS, PM-JAY or NPPA rate was inferred.",
+      "No applicable verified non-payable item rules are available; no regulatory exclusion was inferred."
+    ]
+  }
+}

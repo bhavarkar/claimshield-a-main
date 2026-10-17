@@ -11,6 +11,7 @@ agent falls back to Gemini structured extraction (see llm.GeminiLLM.extract_bill
 
 from __future__ import annotations
 
+import hashlib
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -27,7 +28,9 @@ class ParseError(Exception):
 class RawDocument:
     pages: list[str] = field(default_factory=list)
     tables: list[list[list[str]]] = field(default_factory=list)
+    table_pages: list[int] = field(default_factory=list)
     parser: str = ""
+    document_id: str | None = None
 
 
 # ---------------------------------------------------------------------------------------
@@ -43,9 +46,9 @@ class LocalPdfParser:
 
         import pdfplumber
 
-        raw = RawDocument(parser=self.name)
+        raw = RawDocument(parser=self.name, document_id=policy_document_identity(pdf_bytes))
         with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
-            for page in pdf.pages:
+            for page_no, page in enumerate(pdf.pages, start=1):
                 # Drop rotated and oversized glyphs: diagonal watermarks otherwise interleave with body text.
                 clean = page.filter(
                     lambda o: o.get("object_type") != "char" or (o.get("upright", True) and o.get("size", 0) < 20)
@@ -53,6 +56,7 @@ class LocalPdfParser:
                 raw.pages.append(clean.extract_text() or "")
                 for table in clean.extract_tables():
                     raw.tables.append([[(cell or "").strip() for cell in row] for row in table])
+                    raw.table_pages.append(page_no)
         return raw
 
 
@@ -85,18 +89,20 @@ class DocumentAIParser:
                 text[int(seg.start_index): int(seg.end_index)] for seg in layout.text_anchor.text_segments
             ).strip()
 
-        raw = RawDocument(parser=self.name)
-        for page in doc.pages:
+        raw = RawDocument(parser=self.name, document_id=policy_document_identity(pdf_bytes))
+        for page_no, page in enumerate(doc.pages, start=1):
             raw.pages.append(anchor_text(page.layout))
             for table in page.tables:
                 rows = [[anchor_text(c.layout) for c in r.cells] for r in table.header_rows]
                 rows += [[anchor_text(c.layout) for c in r.cells] for r in table.body_rows]
                 raw.tables.append(rows)
+                raw.table_pages.append(page_no)
             # Form Parser returns header key/values as form fields; expose them as a 2-col table
             # so normalize_bill reads them the same way it reads the local header grid.
             kv = [[anchor_text(f.field_name.layout).rstrip(":"), anchor_text(f.field_value.layout)] for f in page.form_fields]
             if kv:
                 raw.tables.insert(0, kv)
+                raw.table_pages.insert(0, page_no)
         return raw
 
 
@@ -122,6 +128,12 @@ def categorize(dept: str, description: str, known: dict[str, str] | None = None,
     if known and code in known:
         return known[code]
     return DEPT_CATEGORY.get(dept.strip().lower(), "OTHER")
+
+
+def charge_unit(category: str, description: str = "") -> str:
+    """Normalize price comparison units so per-day/visit/test prices are never mixed."""
+    return {"ROOM": "per_day", "ICU": "per_day", "CONSULT": "per_visit", "LAB": "per_test", "RADIOLOGY": "per_scan",
+            "PROCEDURE": "per_procedure", "THERAPY": "per_session"}.get(category, "per_item")
 
 
 def _norm(s: str) -> str:
@@ -163,6 +175,9 @@ def normalize_bill(raw: RawDocument, known_categories: dict[str, str] | None = N
     if items_t is None:
         raise ParseError("No itemised-charges table (with Qty and Amount columns) found in the bill.")
     header = [_norm(c).lower() for c in items_t[0]]
+    item_table_index = next((i for i, table in enumerate(raw.tables) if table is items_t), None)
+    item_page = (raw.table_pages[item_table_index]
+                 if item_table_index is not None and item_table_index < len(raw.table_pages) else None)
 
     def col(*names: str) -> int | None:
         for i, h in enumerate(header):
@@ -171,7 +186,8 @@ def normalize_bill(raw: RawDocument, known_categories: dict[str, str] | None = N
         return None
 
     c_no, c_date, c_code, c_desc = col("#", "s.no", "sl"), col("date"), col("code"), col("description", "particular", "item")
-    c_dept, c_qty, c_rate, c_amt = col("dept", "department"), col("qty", "quantity"), col("rate", "unit"), col("amount")
+    c_dept, c_qty, c_rate, c_amt = col("dept", "department"), col("qty", "quantity"), col("rate", "unit rate", "unit price"), col("amount")
+    c_unit = next((i for i, name in enumerate(header) if name in {'unit', 'uom', 'billing unit', 'unit of measure'}), None)
     if c_desc is None or c_qty is None or c_amt is None:
         raise ParseError(f"Itemised table is missing description/qty/amount columns: {header}")
 
@@ -186,12 +202,14 @@ def normalize_bill(raw: RawDocument, known_categories: dict[str, str] | None = N
         amount = parse_amount(cells[c_amt])
         rate = parse_amount(cells[c_rate]) if c_rate is not None else (amount / qty if qty else amount)
         no = cells[c_no] if c_no is not None else ""
+        category = categorize(dept, cells[c_desc], known_categories, code)
         lines.append(LineItem(
             line_no=int(no) if no.isdigit() else idx,
             service_date=cells[c_date] if c_date is not None else "",
             code=code, description=cells[c_desc], dept=dept,
-            category=categorize(dept, cells[c_desc], known_categories, code),
+            category=category, unit=cells[c_unit] if c_unit is not None and cells[c_unit] else charge_unit(category, cells[c_desc]),
             qty=qty, unit_price=rate, amount=amount,
+            source_page=item_page, source_text=" | ".join(cells),
         ))
 
     fields = _header_fields([t for t in raw.tables if t is not items_t])
@@ -210,6 +228,7 @@ def normalize_bill(raw: RawDocument, known_categories: dict[str, str] | None = N
         bill_number=_get(fields, "bill no", "invoice no"),
         hospital=_norm(raw.pages[0].splitlines()[0]) if raw.pages and raw.pages[0] else "",
         hospital_address=_norm(raw.pages[0].splitlines()[1]) if raw.pages and len(raw.pages[0].splitlines()) > 1 else "",
+        region=_get(fields, "region", "city", "district", "location"),
         network_hospital=not network.lower().startswith("n") if network else True,
         patient_name=_get(fields, "patient name", "patient"),
         patient_age=int(age_match.group(1)) if age_match else None,
@@ -231,7 +250,14 @@ def normalize_bill(raw: RawDocument, known_categories: dict[str, str] | None = N
 CLAUSE_RE = re.compile(r"^(\d+\.\d+)\s+([A-Z][^.]{2,80})\.\s+(.*)$")
 
 
-def normalize_policy(raw: RawDocument, source: str) -> PolicyDoc:
+def policy_document_identity(pdf_bytes: bytes) -> str:
+    """Stable content identity; this does not verify insurer or official policy status."""
+    return hashlib.sha256(pdf_bytes).hexdigest()
+
+
+def normalize_policy(raw: RawDocument, source: str, document_id: str | None = None,
+                     version_id: str | None = None) -> PolicyDoc:
+    document_id = document_id or raw.document_id
     clauses: list[Clause] = []
     current: Clause | None = None
     for page_no, text in enumerate(raw.pages, start=1):
@@ -239,7 +265,8 @@ def normalize_policy(raw: RawDocument, source: str) -> PolicyDoc:
             line = line.strip()
             m = CLAUSE_RE.match(line)
             if m:
-                current = Clause(clause_id=m.group(1), title=m.group(2).strip(), text=m.group(3).strip(), page=page_no, source=source)
+                current = Clause(clause_id=m.group(1), title=m.group(2).strip(), text=m.group(3).strip(),
+                                 page=page_no, source=source, document_id=document_id, version_id=version_id or document_id)
                 clauses.append(current)
             elif current is not None and line and not re.match(r"^Section \d+", line) and not line.startswith("Synthetic document"):
                 current.text = f"{current.text} {line}".strip()
@@ -260,12 +287,10 @@ def normalize_policy(raw: RawDocument, source: str) -> PolicyDoc:
         source=source,
         clauses=clauses,
         schedule=schedule,
+        document_id=document_id,
+        version_id=version_id or document_id,
     )
 
 
 def looks_like_pdf(data: bytes) -> bool:
     return data[:5] == b"%PDF-"
-
-
-def read_bytes(path: str | Path) -> bytes:
-    return Path(path).read_bytes()

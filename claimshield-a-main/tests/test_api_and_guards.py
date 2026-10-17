@@ -21,7 +21,8 @@ def _wait(client: TestClient, case_id: str) -> dict:
 
 
 def test_sample_audit_round_trip() -> None:
-    with TestClient(app) as client:
+    with TestClient(app, base_url="http://localhost", client=("127.0.0.1", 50000),
+                    headers={"X-ClaimShield-Request": "1"}) as client:
         assert client.get("/api/health").json()["status"] == "ok"
         assert "BILL-001" in client.get("/api/samples").json()["bills"]
         case_id = client.post("/api/audit", data={"sample_bill": "BILL-001"}).json()["case_id"]
@@ -40,7 +41,8 @@ def test_upload_audit_and_validation() -> None:
     from claimshield.config import PROJECT_ROOT
 
     samples = PROJECT_ROOT / "data" / "samples"
-    with TestClient(app) as client:
+    with TestClient(app, base_url="http://localhost", client=("127.0.0.1", 50000),
+                    headers={"X-ClaimShield-Request": "1"}) as client:
         files = {
             "bill": ("my_bill.pdf", (samples / "bills" / "bill_003_lotus_knee_replacement.pdf").read_bytes(), "application/pdf"),
             "policy": ("my_policy.pdf", (samples / "policies" / "carefirst_family_silver.pdf").read_bytes(), "application/pdf"),

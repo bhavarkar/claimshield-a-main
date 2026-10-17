@@ -1,0 +1,82 @@
+{
+  "rates": [
+    {
+      "source_name": "SYNTHETIC TEST SOURCE ONLY",
+      "source_type": "CGHS",
+      "source_url": "https://example.invalid/synthetic-test-fixture",
+      "document_id": null,
+      "page_number": null,
+      "effective_date": "2026-01-01",
+      "expiry_date": null,
+      "version": "synthetic-test-v1",
+      "verification_status": "pending_human_review",
+      "enforcement_enabled": false,
+      "imported_at": null,
+      "reviewed_at": null,
+      "reviewed_by": null,
+      "currentness_checked": false,
+      "notes": "Synthetic test fixture, never production data",
+      "reviewer_explanation": "",
+      "record_id": "test-cghs",
+      "item_name": "CBC",
+      "normalized_name": "",
+      "aliases": [],
+      "category": "LAB",
+      "unit": "per_test",
+      "reference_amount": 100.0,
+      "currency": "INR",
+      "geography": "fixture-city",
+      "facility_category": null,
+      "strength": null,
+      "dosage_form": null,
+      "pack_size": null,
+      "manufacturer": null,
+      "price_basis": "unknown",
+      "synthetic": true
+    }
+  ],
+  "room_rules": [
+    {
+      "source_name": "SYNTHETIC POLICY TEST SOURCE",
+      "source_type": "POLICY",
+      "source_url": null,
+      "document_id": "synthetic-policy-only",
+      "page_number": null,
+      "effective_date": "2026-01-01",
+      "expiry_date": null,
+      "version": "synthetic-version-only",
+      "verification_status": "pending_human_review",
+      "enforcement_enabled": false,
+      "imported_at": null,
+      "reviewed_at": null,
+      "reviewed_by": null,
+      "currentness_checked": false,
+      "notes": "",
+      "reviewer_explanation": "",
+      "rule_id": "synthetic-proportion",
+      "rule_name": "Synthetic policy-only room calculation",
+      "policy_document_id": "synthetic-policy-only",
+      "policy_version_id": "synthetic-version-only",
+      "policy_citation": {
+        "clause_id": "R2",
+        "title": "Synthetic proportional fixture",
+        "quote": "Synthetic fixture: eligible consultation and lab charges follow allowed/actual room rate; lab is excluded.",
+        "source": "synthetic-policy.pdf",
+        "page": 3,
+        "document_id": "synthetic-policy-only",
+        "version_id": "synthetic-version-only"
+      },
+      "affected_categories": [
+        "CONSULT",
+        "LAB"
+      ],
+      "affected_items": [],
+      "excluded_categories": [
+        "LAB"
+      ],
+      "excluded_items": [],
+      "calculation": "allowed_over_actual",
+      "synthetic": true
+    }
+  ]
+}

@@ -36,22 +36,29 @@ async def run_one(bill_id: str, verbose: bool) -> dict:
     return state
 
 
-async def main(ids: list[str]) -> None:
+async def main(ids: list[str]) -> int:
     svc = get_services()
     catalog = json.loads((svc.settings.data_dir / "samples" / "catalog.json").read_text())
     ids = ids or list(catalog["bills"])
     print("Stack:", svc.describe())
+    failed = False
     for bill_id in ids:
         state = await run_one(bill_id, verbose=len(ids) == 1)
         print(f"\n{bill_id}: {state['status']}" + (f" - {state.get('error')}" if state["status"] != "complete" else ""))
         if state["status"] != "complete":
+            failed = True
             continue
         for f in state["findings"]:
             print(f"  {f['finding_id']:<4} {f['confidence']:<16} {inr(f['impact']):>10}  {f['type']:<18} lines={f['bill_lines']}  {f['title']}")
         r = state["reconciliation"]
         print(f"  paid {inr(r['patient_paid'])} -> should owe {inr(r['fair_patient_payable_high'])}; likely recovery "
               f"{inr(r['recovery_likely'])} (up to {inr(r['recovery_upper'])}); letters: {[l['recipient'] for l in state['letters']]}")
+    return 1 if failed else 0
 
 
 if __name__ == "__main__":
-    asyncio.run(main(sys.argv[1:]))
+    # Redirected Windows consoles can default to cp1252, which cannot encode rupees.
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8")
+    raise SystemExit(asyncio.run(main(sys.argv[1:])))

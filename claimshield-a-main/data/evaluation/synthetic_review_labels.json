@@ -1,0 +1,11 @@
+{
+  "version": "synthetic-review-labels-1.0",
+  "description": "Small illustrative labels for deterministic evaluation only; all cases and charges are synthetic.",
+  "labels": [
+    {"case": "BILL-004", "finding": "clean_bill", "scenario": "Repeat CBC tests on different days, correct co-pay and excluded admission kit", "flagged": false, "label": "legitimate_charge"},
+    {"case": "SYN-REPEAT-LAB", "finding": "repeat_lab_charge", "scenario": "Legitimate repeat laboratory testing on separate dates", "flagged": true, "label": "legitimate_charge"},
+    {"case": "SYN-DUPLICATE", "finding": "duplicate_billing", "scenario": "Confirmed identical duplicate charge", "flagged": true, "label": "confirmed_issue"},
+    {"case": "SYN-AMBIGUOUS", "finding": "charge_pattern", "scenario": "Insufficient documentation to decide", "flagged": true, "label": "inconclusive"},
+    {"case": "SYN-MISCLASSIFIED", "finding": "automated_duplicate", "scenario": "Incorrect automated duplicate classification; charge is legitimate", "flagged": true, "label": "legitimate_charge"}
+  ]
+}

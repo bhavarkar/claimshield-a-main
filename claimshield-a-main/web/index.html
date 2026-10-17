@@ -13,40 +13,55 @@
       <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2 4 7v8c0 7.5 5.1 13.4 12 15 6.9-1.6 12-7.5 12-15V7z" fill="currentColor"/><path d="m10.5 16.2 3.8 3.8 7.4-8" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <div>
         <h1>ClaimShield AI</h1>
-        <p>Your hospital bill, audited against your policy, on your side.</p>
+        <p>Understand your coverage. Prepare your claim. Know what to do next.</p>
       </div>
     </div>
-    <div id="stack" class="stack" aria-label="Services in use"></div>
+    <details class="service-details"><summary>Processing services</summary><div id="stack" class="stack" aria-label="Services in use"></div></details>
   </header>
 
   <main>
     <section id="start" class="panel">
-      <h2>1. Upload a hospital bill and your insurance policy</h2>
+      <p class="eyebrow">YOUR CLAIM, STEP BY STEP</p>
+      <h2>Start with your documents</h2>
+      <p>Upload your medical records and insurance documents together. We will check the bill, identify missing documents, and show policy clauses that need your attention.</p>
+      <ol class="journey-steps"><li><b>1. Upload</b> Two document groups</li><li><b>2. Review</b> Coverage and evidence gaps</li><li><b>3. Take action</b> Prepare, submit and track</li></ol>
       <div class="uploads">
         <label class="drop" id="drop-bill">
-          <input type="file" id="file-bill" accept="application/pdf">
-          <span class="drop-title">Hospital bill (PDF)</span>
-          <span class="drop-hint" id="hint-bill">Itemised final bill with the insurer settlement</span>
+          <input type="file" id="file-bill" accept="application/pdf" multiple>
+          <span class="drop-title">1. Medical documents</span>
+          <span class="drop-hint" id="hint-bill">Hospital bill, discharge summary, reports, prescriptions and receipts</span>
         </label>
         <label class="drop" id="drop-policy">
-          <input type="file" id="file-policy" accept="application/pdf">
-          <span class="drop-title">Insurance policy (PDF)</span>
-          <span class="drop-hint" id="hint-policy">Policy wording with schedule and clauses</span>
+          <input type="file" id="file-policy" accept="application/pdf" multiple>
+          <span class="drop-title">2. Insurance documents</span>
+          <span class="drop-hint" id="hint-policy">Full policy wording, schedule, endorsements and renewals</span>
         </label>
       </div>
+      <p class="muted small">PDFs only · Up to 10 files per group · 15 MB per file · 50 MB total. Use documents for one patient and one claim.</p>
+      <div class="grid2">
+        <label class="field">Which file is the itemised hospital bill?<select id="main-bill"><option value="0">Upload medical documents first</option></select></label>
+        <label class="field">Which file contains the main policy wording?<select id="main-policy"><option value="0">Upload insurance documents first</option></select></label>
+      </div>
+      <label class="field">How are you claiming?<select id="journey-claim-type"><option value="reimbursement">Reimbursement — I paid the hospital</option><option value="cashless">Cashless — insurer pays the hospital</option><option value="day_care">Day care — treatment without an overnight stay</option></select></label>
+      <p class="note">The bill audit uses the selected main bill and policy. Supporting medical files feed completeness checks and optional AI clause comparisons. Endorsements and eligibility still need confirmation. If you do not have a bill yet, open “Plan treatment” below.</p>
+      <div id="upload-error" class="verdict fail hidden" role="alert"></div>
+      <div class="actions">
+        <button id="audit" class="primary" disabled>Check my claim</button>
+        <span id="selection" class="muted">Add both document groups to begin.</span>
+      </div>
+      <details class="sample-details"><summary>Try a sample bill audit</summary>
       <div class="or"><span>or try a synthetic case</span></div>
       <div id="samples" class="samples"></div>
-      <div class="actions">
-        <button id="audit" class="primary" disabled>Audit</button>
-        <span id="selection" class="muted">Choose a bill and a policy, or pick a sample case.</span>
-      </div>
+      </details>
     </section>
 
     <section id="run" class="panel hidden">
       <div class="run-head">
-        <h2>2. Agents at work</h2>
+        <h2>Checking your claim</h2>
         <span id="case-id" class="muted mono"></span>
       </div>
+      <p id="review-progress" role="status">Your request is queued. You can return using this page’s link.</p>
+      <details><summary>See processing details</summary>
       <div class="pipeline" id="pipeline">
         <div class="agent" data-agent="intake_agent"><b>Intake</b><small>Document AI parsing</small></div>
         <div class="arrow"></div>
@@ -61,10 +76,11 @@
         <div class="arrow"></div>
         <div class="agent" data-agent="dispute_agent"><b>Dispute</b><small>Letters & report</small></div>
       </div>
-      <ol id="log" class="log" aria-live="polite"></ol>
+<ol id="log" class="log" aria-live="polite"></ol></details>
     </section>
 
     <section id="results" class="hidden">
+      <div id="claim-review-result" class="panel hidden" aria-live="polite"></div>
       <div class="panel">
         <h2>3. What we found</h2>
         <div id="verdict" class="verdict"></div>
@@ -75,12 +91,27 @@
       <div class="panel" id="findings-panel">
         <div class="panel-head">
           <h3>Findings</h3>
+          <label class="small">Evidence <select id="evidence-filter"><option value="all">All findings</option><option value="verified">Verified evidence</option><option value="partial">Partial evidence</option><option value="insufficient">Insufficient evidence</option></select></label>
           <div class="legend"><span class="pill high">High</span> follows from the bill's own figures or the policy wording &nbsp; <span class="pill review">Worth reviewing</span> may have a legitimate reason, so ask</div>
         </div>
         <table class="findings">
-          <thead><tr><th>#</th><th>Finding</th><th>Bill line</th><th>Policy clause</th><th>Confidence</th><th class="num">Amount</th></tr></thead>
+          <thead><tr><th>#</th><th>Finding</th><th>Bill line</th><th>Policy clause</th><th>Evidence</th><th>Confidence</th><th class="num">Amount</th></tr></thead>
           <tbody id="findings"></tbody>
         </table>
+      </div>
+
+      <div class="panel hidden" id="healthcare-audit-panel">
+        <h3>Healthcare policy and reference checks</h3>
+        <p class="muted small">Potential adjustments are audit scenarios. CGHS/PM-JAY benchmark variances are shown separately and do not determine insurer liability.</p>
+        <div id="healthcare-audit-summary" class="summary"></div>
+        <div id="healthcare-audit-warnings" role="status"></div>
+        <div class="scroll"><table class="findings"><thead><tr><th>Check / status</th><th>Severity</th><th class="num">Billed</th><th class="num">Reference</th><th class="num">Difference</th><th>Confidence</th><th>Explanation / source</th></tr></thead><tbody id="healthcare-audit-findings"></tbody></table></div>
+      </div>
+
+      <div class="panel" id="benchmark-panel">
+        <h3>Regional charge comparisons</h3>
+        <p class="muted small">Informational price references can identify rates worth reviewing. A high charge alone does not establish fraud, overbilling, or a contractual violation.</p>
+        <div class="scroll"><table class="findings"><thead><tr><th>Charge</th><th>Region / unit</th><th class="num">Billed rate</th><th>Comparison range</th><th>Source / date / version</th><th>Assessment</th></tr></thead><tbody id="benchmark-rows"></tbody></table></div>
       </div>
 
       <div class="grid2">
@@ -107,8 +138,205 @@
         <pre id="letter" class="letter"></pre>
       </div>
 
+      <div class="panel" id="timeline-panel">
+        <h3>Claim timeline & next steps</h3>
+        <p class="muted small">Record claim updates and prepare a follow-up draft. Drafts are not submitted to an insurer or external portal.</p>
+        <div id="timeline-status" class="summary"></div>
+        <ol id="claim-timeline" class="claim-timeline"></ol>
+        <div id="pending-actions"></div>
+        <form id="claim-event-form" class="rejection-form">
+          <label class="field">Event<select name="event_type" required><option value="submission">Submission</option><option value="insurer_query">Insurer query</option><option value="document_response">Document response</option><option value="settlement">Settlement</option><option value="rejection">Rejection</option><option value="grievance">Grievance</option><option value="closure">Closure</option></select></label>
+          <label class="field">Date<input name="date" type="date" required></label>
+          <label class="field">Claim status<select name="claim_status" required><option value="submitted">Submitted</option><option value="query_pending">Query pending</option><option value="documents_responded">Documents responded</option><option value="settled">Settled</option><option value="rejected">Rejected</option><option value="grievance_open">Grievance open</option><option value="grievance_resolved">Grievance resolved</option><option value="closed">Closed</option></select></label>
+          <label class="field">Source<input name="source" required maxlength="160" placeholder="e.g. Insurer email"></label>
+          <label class="field">Notes<input name="notes" maxlength="4000"></label>
+          <label class="field">Required supporting documents<input name="required_documents" placeholder="Comma separated"></label>
+          <label class="field">Attach PDF (optional)<input name="attachment" type="file" accept="application/pdf"></label>
+          <div class="actions"><button class="primary" type="submit">Add event</button><button class="secondary" id="draft-follow-up" type="button">Draft follow-up</button><button class="secondary" id="draft-grievance" type="button">Draft grievance letter</button></div>
+        </form>
+        <div id="timeline-error" class="verdict fail hidden" role="alert"></div>
+        <div id="timeline-draft" class="hidden"><h4 id="timeline-draft-subject"></h4><pre class="letter" id="timeline-draft-body"></pre></div>
+      </div>
+
       <div class="actions center"><button id="again" class="secondary">Audit another bill</button></div>
     </section>
+    <div class="tools-heading"><h2>Help for the next stage</h2><p class="muted">Open only what you need.</p></div>
+    <details class="tool-disclosure" data-tool="claim-dashboard-panel"><summary>My claims and settlement history</summary>
+    <section class="panel" id="claim-dashboard-panel">
+      <div class="panel-head"><div><h2>Claim journey & outcome dashboard</h2><p class="muted small">Your audit history, claim updates, settlement entries and estimated recovery in one view.</p></div><div class="actions"><button class="secondary" id="dashboard-refresh" type="button">Refresh</button><button class="secondary" id="dashboard-export" type="button">Export CSV</button></div></div>
+      <p class="note" id="dashboard-notice"></p>
+      <div id="dashboard-cards" class="summary"></div>
+      <div class="preclaim-list"><h3>Claim history</h3><div class="scroll"><table class="findings"><thead><tr><th>Claim</th><th>Provider / status</th><th class="num">Claimed</th><th class="num">Assessed payable</th><th class="num">Actual settled</th><th class="num">Deductions</th><th>Dispute / actions</th><th>Data</th></tr></thead><tbody id="dashboard-claims"></tbody></table></div></div>
+      <div class="preclaim-list"><h3>Financial reconciliation</h3><div id="dashboard-reconciliation" class="dashboard-reconciliation"></div></div>
+      <div id="dashboard-error" class="verdict fail hidden" role="alert"></div>
+    </section>
+    </details>
+    <details class="tool-disclosure" data-tool="insurer-reviewer-panel"><summary>Professional workspace: insurer review</summary>
+    <section class="panel" id="insurer-reviewer-panel">
+      <div class="panel-head"><div><h2>Insurer-side claim review</h2><p class="muted small">Separate reviewer workspace for claims in your authenticated tenant. Audit findings are advisory and never automatic fraud determinations.</p></div><button class="secondary" id="reviewer-refresh" type="button">Refresh queue</button></div>
+      <div id="reviewer-access-note" class="note">Access requires an explicitly configured reviewer account. Review evidence and outcomes are stored with the case.</div>
+      <div id="reviewer-error" class="verdict fail hidden" role="alert"></div>
+      <div id="reviewer-queue" class="review-queue"><p class="muted">Loading review queue…</p></div>
+      <section class="preclaim-list"><div class="panel-head"><h3>False-positive analysis</h3><button class="secondary" id="reviewer-evaluation-refresh" type="button">Refresh analysis</button></div><div id="reviewer-evaluation" class="summary"></div></section>
+    </section>
+    </details>
+    <details class="tool-disclosure" data-tool="regulatory-reference-panel"><summary>Professional workspace: regulatory references</summary>
+    <section class="panel" id="regulatory-reference-panel">
+      <div class="panel-head"><div><h2>IRDAI Regulatory Reference</h2><p class="muted small">Source-bound reference material and rule applicability. Applicability is not a finding that an insurer violated a rule.</p></div><button class="secondary" id="regulatory-refresh" type="button">Refresh reference</button></div>
+      <p class="note" id="regulatory-notice">Unreviewed candidates are not legally authoritative. Currentness must be checked before approval.</p>
+      <div id="regulatory-error" class="verdict fail hidden" role="alert"></div>
+      <div class="preclaim-list"><h3>Regulatory documents</h3><div id="regulatory-documents" class="review-queue"></div></div>
+      <div class="preclaim-list"><h3>Search reviewed rules and candidates</h3><form id="regulatory-search-form" class="actions"><input id="regulatory-query" maxlength="160" placeholder="Search title or exact rule text"><button class="secondary" type="submit">Search</button></form><div id="regulatory-rules" class="review-queue"></div></div>
+      <div class="preclaim-list"><h3>Check rule applicability</h3><form id="regulatory-evaluate-form" class="rejection-form"><label class="field">Rule<select id="regulatory-rule-select" required><option value="">Select a rule</option></select></label><label class="field">Insurance category<input name="insurance_category" placeholder="health"></label><label class="field">Relevant event date<input name="event_date" type="date"></label><label class="field">Claim context<input name="claim_context" placeholder="cashless, reimbursement, claim decision"></label><label class="field">Policy type<input name="policy_type" placeholder="individual, group"></label><div class="actions"><button class="primary" type="submit">Evaluate applicability</button></div></form><div id="regulatory-evaluation"></div></div>
+      <details class="preclaim-list"><summary>Administrator controls</summary><p class="muted small">These requests require an explicitly configured regulatory administrator. Uploads remain pending until a human confirms source authenticity, exact wording, applicability, and currentness. SHA-256 identifies the bytes; it does not authenticate IRDAI publication.</p><form id="regulatory-ingest-form" class="rejection-form"><label class="field">Allowlisted document<select name="document_id" required></select></label><label class="field">Official IRDAI listing URL<input name="source_url" required value="https://irdai.gov.in/circulars?filterDepartment=HLT&amp;filtersApplied=true"></label><label class="field">Original PDF<input name="pdf" type="file" accept="application/pdf" required></label><div class="actions"><button class="secondary" id="regulatory-preview-button" type="button">Validate and preview pages</button><button class="secondary" id="regulatory-ingest-button" type="submit" disabled>Store reviewed source</button></div></form><div id="regulatory-pdf-preview" class="review-queue"></div><form id="regulatory-rule-form" class="rejection-form"><label class="field">Rule ID<input name="rule_id" required></label><label class="field">Rule title<input name="rule_title" required></label><label class="field">Source document<select name="source_document_id" required></select></label><label class="field">Exact source citation<input name="source_citation" required></label><label class="field">Source page<input name="source_page" type="number" min="1" required></label><label class="field">Source paragraph / clause<input name="source_paragraph"></label><label class="field">Exact quoted text<textarea name="source_quote" required rows="3"></textarea></label><label class="field">Effective date<input name="effective_date" type="date"></label><label class="field">Insurance categories (comma separated)<input name="insurance_categories"></label><label class="field">Claim contexts (comma separated)<input name="claim_contexts"></label><label class="field">Policy types (comma separated)<input name="policy_types"></label><button class="secondary" type="submit">Save unreviewed candidate</button></form><div id="regulatory-admin-result" class="note"></div></details>
+    </section>
+    </details>
+    <details class="tool-disclosure" data-tool="document-check-panel"><summary>Check documents only</summary>
+    <section class="panel" id="document-check-panel">
+      <h2>Smart Claim Document Checker</h2>
+      <p class="muted small">Upload claim documents together. Document types are inferred from extracted PDF text; filenames are shown only for reference.</p>
+      <form id="document-check-form" class="rejection-form">
+        <label class="field">Claim documents (PDFs)<input type="file" name="files" accept="application/pdf" multiple required></label>
+        <label class="field">Claim type<select name="claim_type"><option value="reimbursement">Reimbursement</option><option value="cashless">Cashless</option><option value="day_care">Day care</option><option value="default">General / unsure</option></select></label>
+        <label class="field">Insurer name (optional)<input name="insurer" maxlength="120" placeholder="Only used for configured insurer requirements"></label>
+        <div class="actions"><button class="primary" id="document-check-submit" type="submit">Check documents</button></div>
+      </form>
+      <div id="document-check-error" class="verdict fail hidden" role="alert"></div>
+      <div id="document-check-result" class="hidden" aria-live="polite"></div>
+    </section>
+    </details>
+    <details class="tool-disclosure" data-tool="rejection-panel"><summary>Understand a rejection</summary>
+    <section class="panel" id="rejection-panel">
+      <h2>Claim Rejection Analysis</h2>
+      <p class="muted small">Compare the reasons in a rejection notice with your policy wording. Results are evidence-based and do not decide whether a rejection is lawful.</p>
+      <form id="rejection-form" class="rejection-form">
+        <label class="field">Insurance rejection letter (PDF)<input type="file" name="rejection_letter" accept="application/pdf" required></label>
+        <label class="field">Insurance policy (PDF)<input type="file" name="policy" accept="application/pdf" required></label>
+        <div class="actions"><button class="primary" id="rejection-submit" type="submit">Analyze rejection</button></div>
+      </form>
+      <div id="rejection-error" class="verdict fail hidden" role="alert"></div>
+      <div id="rejection-result" class="hidden" aria-live="polite"></div>
+    </section>
+    </details>
+    <details class="tool-disclosure" data-tool="preclaim-panel"><summary>Plan treatment: estimate coverage</summary>
+    <section class="panel" id="preclaim-panel">
+      <h2>Pre-Claim Assessment</h2>
+      <p class="muted small">Estimate likely policy coverage before planned treatment. Upload policy wording and enter your current cost estimate.</p>
+      <form id="preclaim-form">
+        <div class="grid2 preclaim-grid">
+          <label class="field">Insurance policy (PDF)<input type="file" id="preclaim-policy" name="policy" accept="application/pdf" required></label>
+          <label class="field">Proposed treatment<input name="treatment" required maxlength="160" placeholder="e.g. Total knee replacement"></label>
+          <label class="field">Estimated total (₹)<input name="estimated_total" type="number" min="1" step="0.01" required></label>
+          <label class="field">Room category<select name="room_category" required><option value="">Choose a category</option><option>General</option><option>Shared</option><option>Semi-private</option><option>Private</option><option>ICU</option></select></label>
+          <label class="field">Room rate per day (₹)<input name="room_rate_per_day" type="number" min="0" step="0.01"></label>
+          <label class="field">Expected nights<input name="nights" type="number" min="1" max="365" value="1" required></label>
+          <label class="field">Planned hospitalization date<input name="hospitalization_date" type="date" required></label>
+          <label class="field">Hospital network status<select name="network_hospital"><option value="">Not sure</option><option value="true">Network</option><option value="false">Non-network</option></select></label>
+          <label class="field">Patient age (optional)<input name="patient_age" type="number" min="0" max="120"></label>
+          <label class="field">Deductible override (₹, optional)<input name="deductible" type="number" min="0" step="0.01" placeholder="Use only if confirmed by insurer"></label>
+        </div>
+        <div class="preclaim-list">
+          <div class="panel-head"><h3>Estimated expense lines (optional)</h3><button class="secondary" id="add-cost-line" type="button">Add expense</button></div>
+          <p class="muted small">Add lines when you want category exclusions included. If provided, line amounts must add up to the estimated total.</p>
+          <div id="preclaim-cost-lines"></div>
+        </div>
+        <div class="actions"><button class="primary" id="preclaim-submit" type="submit">Estimate coverage</button><span class="muted small">The estimate is not a guarantee of claim approval.</span></div>
+      </form>
+      <div id="preclaim-error" class="verdict fail hidden" role="alert"></div>
+      <div id="preclaim-result" class="hidden" aria-live="polite"></div>
+    </section>
+    </details>
+    <details class="tool-disclosure" data-tool="what-if-panel"><summary>Compare treatment cost options</summary>
+    <section class="panel" id="what-if-panel">
+      <h2>What-if coverage simulator</h2>
+      <p class="muted small">Compare room choice, cost estimates, and clearly marked hypothetical policy values. The real policy stays unchanged.</p>
+      <form id="what-if-form">
+        <div class="grid2 preclaim-grid">
+          <label class="field">Insurance policy (PDF)<input type="file" name="policy" accept="application/pdf" required></label>
+          <label class="field">Treatment<input name="treatment" required maxlength="160" value="Planned treatment"></label>
+          <label class="field">Current estimate (₹)<input name="estimated_total" type="number" min="0.01" step="0.01" required></label>
+          <label class="field">Current room category<select name="room_category"><option>General</option><option>Shared</option><option>Semi-private</option><option>Private</option><option>ICU</option></select></label>
+          <label class="field">Room rate per day (₹)<input name="room_rate_per_day" type="number" min="0" step="0.01"></label>
+          <label class="field">Expected nights<input name="nights" type="number" min="1" max="365" value="1" required></label>
+          <label class="field">Hospitalization date<input name="hospitalization_date" type="date" required></label>
+          <label class="field">Hospital network<select name="network_hospital"><option value="true">Network</option><option value="false">Non-network</option></select></label>
+        </div>
+        <div class="preclaim-list"><div class="panel-head"><h3>Alternative scenarios</h3><button class="secondary" id="add-scenario" type="button">Add scenario</button></div><div id="scenario-inputs"></div></div>
+        <div class="actions"><button class="primary" id="what-if-submit" type="submit">Compare scenarios</button></div>
+      </form>
+      <div id="what-if-error" class="verdict fail hidden" role="alert"></div>
+      <div id="what-if-result" class="hidden" aria-live="polite"></div>
+    </section>
+    </details>
+    <details class="tool-disclosure" data-tool="preauth-panel"><summary>Prepare a cashless authorization request</summary>
+    <section class="panel" id="preauth-panel">
+      <h2>Cashless pre-authorization preparation</h2>
+      <p class="muted small">Prepare information and documents for insurer review. ClaimShield cannot grant authorization and does not contact an insurer or hospital.</p>
+      <form id="preauth-form">
+        <div class="grid2 preclaim-grid">
+          <label class="field">Patient name<input name="patient_name" maxlength="160" required></label>
+          <label class="field">Treatment<input name="treatment" maxlength="160" required></label>
+          <label class="field">Estimated treatment cost (₹)<input name="estimated_cost" type="number" min="0.01" max="100000000" step="0.01" required></label>
+          <label class="field">Cost notes (optional)<input name="cost_notes" maxlength="1000"></label>
+          <label class="field">Hospital name<input name="hospital_name" maxlength="180" required></label>
+          <label class="field">Hospital address<input name="hospital_address" maxlength="500" required></label>
+          <label class="field">Hospital contact (optional)<input name="hospital_contact" maxlength="120"></label>
+          <label class="field">Network status<select name="network_status"><option value="unknown">Not confirmed</option><option value="confirmed_network">Confirmed network</option><option value="confirmed_non_network">Confirmed non-network</option></select></label>
+          <label class="field">Insurer name<input name="insurer_name" maxlength="160" required></label>
+          <label class="field">TPA (optional)<input name="tpa_name" maxlength="160"></label>
+          <label class="field">Policy number<input name="policy_number" maxlength="120" required></label>
+          <label class="field">Plan name (optional)<input name="plan_name" maxlength="160"></label>
+          <label class="field">Policy start date<input name="policy_start" type="date"></label>
+          <label class="field">Policy end date<input name="policy_end" type="date"></label>
+          <label class="field">Policy wording PDF (optional)<input name="policy" type="file" accept="application/pdf"></label>
+          <label class="field">Supporting documents (PDFs)<input name="documents" type="file" accept="application/pdf" multiple></label>
+        </div>
+        <fieldset class="document-checklist"><legend>Documents available for this request</legend>
+          <label><input type="checkbox" name="document_types" value="hospital_estimate"> Hospital cost estimate</label>
+          <label><input type="checkbox" name="document_types" value="doctor_advice"> Doctor advice / admission recommendation</label>
+          <label><input type="checkbox" name="document_types" value="policy_schedule"> Policy schedule or e-card</label>
+          <label><input type="checkbox" name="document_types" value="patient_id"> Patient identity document</label>
+          <label><input type="checkbox" name="document_types" value="investigation_reports"> Relevant investigation reports</label>
+        </fieldset>
+        <label class="consent"><input name="patient_consent" type="checkbox" required> I confirm the patient has consented to prepare and store these details and documents.</label>
+        <div class="actions"><button class="primary" id="preauth-submit" type="submit">Prepare request summary</button></div>
+      </form>
+      <div id="preauth-error" class="verdict fail hidden" role="alert"></div>
+      <div id="preauth-result" class="hidden" aria-live="polite"></div>
+    </section>
+    </details>
+    <details class="tool-disclosure" data-tool="policy-history-panel"><summary>Check renewals and policy history</summary>
+    <section class="panel" id="policy-history-panel">
+      <h2>Policy version & waiting-period checker</h2>
+      <p class="muted small">Upload policy schedules, renewals, endorsements, prior policy or portability documents. Renewal dates alone do not establish continuity.</p>
+      <form id="policy-history-form">
+        <div class="grid2 preclaim-grid">
+          <label class="field">Treatment or condition<input name="treatment" maxlength="160" required></label>
+          <label class="field">Treatment date<input name="treatment_date" type="date" required></label>
+          <label class="field">Continuity evidence status<select name="continuity_status"><option value="unknown">Unknown / not verified</option><option value="confirmed_with_documents">Confirmed with supporting documents</option><option value="not_confirmed">Not confirmed</option></select></label>
+          <label class="field">Policy documents (PDFs)<input id="policy-history-files" name="documents" type="file" accept="application/pdf" multiple required></label>
+        </div>
+        <div id="policy-document-types" class="preclaim-list"></div>
+        <div class="actions"><button class="primary" id="policy-history-submit" type="submit">Check policy history</button></div>
+      </form>
+      <div id="policy-history-error" class="verdict fail hidden" role="alert"></div>
+      <div id="policy-history-result" class="hidden" aria-live="polite"></div>
+    </section>
+    </details>
+    <details class="tool-disclosure" data-tool="policy-explainer-panel"><summary>Ask about a policy clause</summary>
+    <section class="panel" id="policy-explainer-panel">
+      <h2>Multilingual policy explainer</h2>
+      <p class="muted small">Get a plain-language explanation grounded in retrieved policy clauses. The original policy wording remains contractual.</p>
+      <form id="policy-explainer-form" class="rejection-form">
+        <label class="field">Policy document (PDF)<input name="policy" type="file" accept="application/pdf" required></label>
+        <label class="field">What would you like explained?<input name="question" maxlength="500" required placeholder="For example: What co-payment applies?"></label>
+        <label class="field">Explanation language<select name="language"><option value="en">English</option><option value="hi">Hindi</option><option value="kn">Kannada</option></select></label>
+        <div class="actions"><button class="primary" id="policy-explainer-submit" type="submit">Explain policy clause</button></div>
+      </form>
+      <div id="policy-explainer-error" class="verdict fail hidden" role="alert"></div>
+      <div id="policy-explainer-result" class="hidden" aria-live="polite"></div>
+    </section>
+    </details>
   </main>
 
   <footer>

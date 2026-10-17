@@ -24,9 +24,18 @@ class LineItem(BaseModel):
     description: str
     dept: str = ""
     category: Category = "OTHER"
+    unit: str = "per_item"
     qty: float
     unit_price: float
     amount: float
+    source_page: Optional[int] = None
+    source_text: str = ""
+    normalized_description: str = ""
+    strength: str = ""
+    dosage_form: str = ""
+    pack_size: str = ""
+    manufacturer: str = ""
+    price_basis: Literal['unknown', 'net_excluding_tax', 'tax_inclusive'] = 'unknown'
 
 
 class Deduction(BaseModel):
@@ -39,6 +48,7 @@ class Bill(BaseModel):
     bill_number: str = ""
     hospital: str = ""
     hospital_address: str = ""
+    region: str = ""
     network_hospital: bool = True
     patient_name: str = ""
     patient_age: Optional[int] = None
@@ -54,6 +64,10 @@ class Bill(BaseModel):
     insurer_approved: float = 0.0
     patient_payable: float = 0.0
     parser: str = ""
+    facility_category: str = ""
+    room_category: str = ""
+    admission_days: Optional[float] = None
+    actual_room_rent_per_day: Optional[float] = None
 
     @property
     def nights(self) -> int:
@@ -70,6 +84,8 @@ class Clause(BaseModel):
     page: int = 1
     source: str = ""
     score: float = 0.0
+    document_id: str | None = None
+    version_id: str | None = None
 
     def cite(self) -> str:
         return f"§{self.clause_id} {self.title}"
@@ -82,6 +98,8 @@ class PolicyDoc(BaseModel):
     source: str = ""
     clauses: list[Clause] = Field(default_factory=list)
     schedule: dict[str, str] = Field(default_factory=dict)
+    document_id: str | None = None
+    version_id: str | None = None
 
 
 class SubLimit(BaseModel):
@@ -105,6 +123,9 @@ class PolicyTerms(BaseModel):
     personal_items_excluded: bool = True
     clause_refs: dict[str, str] = Field(default_factory=dict)
     extraction: str = "rules"
+    uncertain_topics: list[str] = Field(default_factory=list)
+    room_rent_limit_type: Optional[Literal['per_day', 'percent_sum_insured_per_day', 'category', 'unknown']] = None
+    room_rent_limit_pct: Optional[float] = None
 
 
 class FindingType(str, Enum):
@@ -116,6 +137,11 @@ class FindingType(str, Enum):
     PRICE_OUTLIER = "PRICE_OUTLIER"
     COVERAGE_MISMATCH = "COVERAGE_MISMATCH"
     CLINICAL_REVIEW = "CLINICAL_REVIEW"
+    NON_PAYABLE_ITEM = 'NON_PAYABLE_ITEM'
+    ROOM_RENT_LIMIT = 'ROOM_RENT_LIMIT'
+    ROOM_RENT_PROPORTIONATE = 'ROOM_RENT_PROPORTIONATE'
+    HEALTHCARE_BENCHMARK = 'HEALTHCARE_BENCHMARK'
+    NPPA_REFERENCE = 'NPPA_REFERENCE'
 
 
 FINDING_LABELS = {
@@ -127,6 +153,11 @@ FINDING_LABELS = {
     FindingType.PRICE_OUTLIER: "Priced above benchmark",
     FindingType.COVERAGE_MISMATCH: "Settled differently from policy",
     FindingType.CLINICAL_REVIEW: "Clinical consistency question",
+    FindingType.NON_PAYABLE_ITEM: 'Non-payable item reference check',
+    FindingType.ROOM_RENT_LIMIT: 'Room-rent daily limit',
+    FindingType.ROOM_RENT_PROPORTIONATE: 'Policy-configured proportionate adjustment',
+    FindingType.HEALTHCARE_BENCHMARK: 'Healthcare benchmark comparison',
+    FindingType.NPPA_REFERENCE: 'NPPA reference comparison',
 }
 
 
@@ -136,6 +167,8 @@ class PolicyCitation(BaseModel):
     quote: str
     source: str = ""
     page: int = 1
+    document_id: str | None = None
+    version_id: str | None = None
 
 
 class Finding(BaseModel):
@@ -154,6 +187,8 @@ class Finding(BaseModel):
     detected_by: str
     method: str
     topic: str = ""
+    evidence: Optional[dict] = None
+    benchmark: Optional[dict] = None
 
 
 class Entitlement(BaseModel):

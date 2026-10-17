@@ -5,7 +5,8 @@ PORT ?= 8080
 
 setup:            ## create the virtualenv and install everything
 	python3.11 -m venv .venv
-	.venv/bin/pip install -r requirements-dev.txt
+	.venv/bin/python -m pip install -r requirements.lock
+	.venv/bin/python -m pip check
 
 data:             ## regenerate the synthetic bills, policies and answer key
 	$(PY) data/generate.py
@@ -21,7 +22,7 @@ samples:          ## run every synthetic bill through the agents and print findi
 
 docker:           ## build and run the container locally
 	docker build -t claimshield-ai .
-	docker run --rm -p $(PORT):8080 -e CLAIMSHIELD_DEMO_PACE=0.35 claimshield-ai
+	docker run --rm --network host -e CLAIMSHIELD_AUTH_MODE=demo -e CLAIMSHIELD_DEMO_PACE=0.35 claimshield-ai python -m uvicorn claimshield.api.main:app --host 127.0.0.1 --port $(PORT)
 
 gcp-setup:        ## enable APIs, create bucket, dataset, service account (needs gcloud)
 	bash scripts/setup_gcp.sh

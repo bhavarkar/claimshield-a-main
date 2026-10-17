@@ -8,6 +8,8 @@ CREATE TABLE IF NOT EXISTS `{dataset}.line_items` (
   description  STRING,
   dept         STRING,
   category     STRING,
+  unit         STRING,
+  region       STRING,
   qty          FLOAT64,
   unit_price   FLOAT64,
   amount       FLOAT64,
@@ -27,7 +29,14 @@ CREATE TABLE IF NOT EXISTS `{dataset}.reference_pricing` (
   p50_unit_price FLOAT64,
   p90_unit_price FLOAT64,
   city_tier      INT64,
-  source         STRING
+  source         STRING,
+  region         STRING,
+  unit           STRING,
+  price_source   STRING,
+  price_type     STRING,
+  provider_id    STRING,
+  reference_date DATE,
+  dataset_version STRING
 );
 
 CREATE TABLE IF NOT EXISTS `{dataset}.procedure_benchmarks` (
